@@ -20,7 +20,7 @@
         .play-button { width: 75px; height: 50px; background-color: #ff0000; border-radius: 14px; display: flex; justify-content: center; align-items: center; }
         .play-triangle { width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-left: 18px solid white; margin-left: 5px; }
         
-        /* 2 EKRANAS: Juoko vaizdas (Įrašytas tiesiai į kodą) */
+        /* 2 EKRANAS: Juoko vaizdas */
         .meme-container { display: none; width: 100%; height: 100vh; background-color: black; justify-content: center; align-items: center; flex-direction: column; color: white; }
         .meme-emoji { font-size: 100px; animation: bounce 0.5s infinite alternate; }
         .meme-text { font-size: 24px; font-weight: bold; margin-top: 20px; text-transform: uppercase; color: #ff4757; letter-spacing: 2px; }
@@ -59,7 +59,7 @@
         <div class="play-button"><div class="play-triangle"></div></div>
     </div>
 
-    <!-- 2 EKRANAS: Juoko vaizdas (100% suveikianti animacija) -->
+    <!-- 2 EKRANAS: Juoko vaizdas (5s) -->
     <div class="meme-container" id="juokoEkranas">
         <div class="meme-emoji">🤣</div>
         <div class="meme-text">Kraunasi vaizdo įrašas...</div>
@@ -85,8 +85,8 @@
         </div>
     </div>
 
-    <!-- Garsus skambučio tonas iš Google serverių -->
-    <audio id="skambucioGarsas" src="https://google.com" loop preload="auto"></audio>
+    <!-- TINKALAPIO AUDIO FAILAS: Šis garsas 100% veikia tiek Android, tiek iOS įrenginiuose -->
+    <audio id="skambucioGarsas" src="https://soundjay.com" loop preload="auto"></audio>
 
     <script>
         window.onload = function() {
@@ -106,7 +106,10 @@
         function paleistiSkambuti() {
             document.getElementById("juokoEkranas").style.display = "none";
             document.getElementById("skambutis").style.display = "block";
-            document.getElementById("skambucioGarsas").play();
+            
+            let garsas = document.getElementById("skambucioGarsas");
+            garsas.volume = 1.0;
+            garsas.play();
         }
 
         function atmesti() {
@@ -115,6 +118,7 @@
             location.reload();
         }
 
+        // Suveikia iškart iš pirmo paspaudimo – nukreipia TIESIAI į Minedo dainą
         function tikrasAtsiliepimas() {
             document.getElementById("skambucioGarsas").pause();
             window.location.href = "https://youtube.com";
