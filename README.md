@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- Meta žymos lietuviškai YouTube peržiūrai Messenger/Viber programėlėse -->
+peržiūrai Messenger/Viber programėlėse -->
     <meta property="og:title" content="Žiūrėti karščiausią video (YouTube.com)" />
     <meta property="og:description" content="Žiūrėkite nemokamai tiesiogiai per YouTube programėlę." />
     <meta property="og:image" content="https://youtube.com" />
@@ -20,7 +20,7 @@
         .play-button { width: 75px; height: 50px; background-color: #ff0000; border-radius: 14px; display: flex; justify-content: center; align-items: center; }
         .play-triangle { width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-left: 18px solid white; margin-left: 5px; }
         
-        /* 2 EKRANAS: Juoko vaizdas */
+        /* 2 EKRANAS: Juoko vaizdas (5s) */
         .meme-container { display: none; width: 100%; height: 100vh; background-color: black; justify-content: center; align-items: center; flex-direction: column; color: white; }
         .meme-emoji { font-size: 100px; animation: bounce 0.5s infinite alternate; }
         .meme-text { font-size: 24px; font-weight: bold; margin-top: 20px; text-transform: uppercase; color: #ff4757; letter-spacing: 2px; }
@@ -85,10 +85,10 @@
         </div>
     </div>
 
-    <!-- TINKALAPIO AUDIO FAILAS: Šis garsas 100% veikia tiek Android, tiek iOS įrenginiuose -->
-    <audio id="skambucioGarsas" src="https://soundjay.com" loop preload="auto"></audio>
-
     <script>
+        let audioCtx;
+        let skambejimoIntervalas;
+
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const parinktasVardas = urlParams.get('vardas');
@@ -100,6 +100,10 @@
         function paleistiJuokoVideo() {
             document.getElementById("grotuvas").style.display = "none";
             document.getElementById("juokoEkranas").style.display = "flex";
+            
+            // Inicializuojame telefono naršyklės garso variklį iškart po pirmo paspaudimo (Sutikimas gautas!)
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
             setTimeout(paleistiSkambuti, 5000); 
         }
 
@@ -107,21 +111,41 @@
             document.getElementById("juokoEkranas").style.display = "none";
             document.getElementById("skambutis").style.display = "block";
             
-            let garsas = document.getElementById("skambucioGarsas");
-            garsas.volume = 1.0;
-            garsas.play();
+            // Paleidžiame imituojamą skaitmeninį skambučio pypimą kas 1.5 sekundės
+            generuotiSkambucioGarsa();
+            skambejimoIntervalas = setInterval(generuotiSkambucioGarsa, 1500);
+        }
+
+        // TINKALAPIO GARSO GENERATORIUS: Šis kodas pats sukuria fizinį pavojaus/skambučio garsą garsiakalbyje
+        function generuotiSkambucioGarsa() {
+            if (!audioCtx) return;
+            
+            // Sukuriame skaitmeninį pypsėjimą (imituojame skambutį/žadintuvą)
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            
+            osc.type = 'sine'; 
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Aukštas, garsus dažnis
+            
+            gain.gain.setValueAtTime(1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2); // Garsas gražiai nuslopsta per 1.2s
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 1.2);
         }
 
         function atmesti() {
-            document.getElementById("skambucioGarsas").pause();
+            clearInterval(skambejimoIntervalas);
             alert("Skambutis atmestas.");
             location.reload();
         }
 
-        // Suveikia iškart iš pirmo paspaudimo – nukreipia TIESIAI į Minedo dainą
         function tikrasAtsiliepimas() {
-            document.getElementById("skambucioGarsas").pause();
-            window.location.href = "https://youtube.com";
+            clearInterval(skambejimoIntervalas); // Visiškai išjungiame pypimą
+            window.location.href = "https://youtube.com"; // Nukreipiame į Minedą
         }
     </script>
 </body>
