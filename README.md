@@ -40,18 +40,10 @@
         .btn-decline { background-color: #ff3b30; color: white; }
         .btn-accept { background-color: #2ed573; color: white; animation: shake 1s infinite; }
         
-        /* POKŠTO ŽINUTĖ (Atsidaro iškart paspaudus Atsiliepti) */
-        .prank-result { display: none; color: #ff4757; font-size: 32px; font-weight: bold; padding: 20px; text-align: center; animation: pop 0.5s ease-out; }
-        .timer-text { font-size: 22px; color: #2ecc71; margin-top: 15px; font-weight: normal; }
-        
         @keyframes shake {
             0%, 100% { transform: rotate(0deg) scale(1); }
             10%, 30%, 50%, 70%, 90% { transform: rotate(-5deg) scale(1.05); }
             20%, 40%, 60%, 80% { transform: rotate(5deg) scale(1.05); }
-        }
-        @keyframes pop {
-            0% { transform: scale(0.5); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
         }
     </style>
 </head>
@@ -69,20 +61,11 @@
 
     <!-- 3 EKRANAS: Skambutis -->
     <div class="calling-screen" id="skambutis">
+        <div class="caller-title">Skubus skambutis</div>
+        <div class="caller-name" id="skambintojoVardas">Nežinomas numeris</div>
+        <div class="caller-sub">Šifruotas ryšys</div>
         
-        <div id="skambucioInformacija">
-            <div class="caller-title">Skubus skambutis</div>
-            <div class="caller-name" id="skambintojoVardas">Nežinomas numeris</div>
-            <div class="caller-sub">Šifruotas ryšys</div>
-        </div>
-
-        <!-- Čia atsiras užrašas ir laikas iškart po 1 paspaudimo -->
-        <div class="prank-result" id="isdurtaZinute">
-            Tave ką tik išdūrė BOSS! 🤣
-            <div class="timer-text" id="pokalbioLaikmatis">Atsiliepta... 00:00</div>
-        </div>
-        
-        <div class="bottom-container" id="valdymoPanele">
+        <div class="bottom-container">
             <div class="buttons-container">
                 <div class="btn-wrapper" onclick="atmesti()">
                     <button class="btn btn-decline">❌</button>
@@ -100,9 +83,6 @@
     <audio id="skambucioGarsas" src="https://google.com" loop preload="auto"></audio>
 
     <script>
-        let sekundes = 0;
-        let laikmacioIntervalas;
-
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const parinktasVardas = urlParams.get('vardas');
@@ -125,38 +105,13 @@
 
         function atmesti() {
             document.getElementById("skambucioGarsas").pause();
-            clearInterval(laikmacioIntervalas);
             alert("Skambutis atmestas.");
             location.reload();
         }
 
-        // NAUJA LOGIKA: Suveikia iš pirmo paspaudimo iškart
+        // Suveikia iškart iš pirmo paspaudimo – nukreipia TIESIAI į Minedo dainą
         function tikrasAtsiliepimas() {
-            document.getElementById("skambucioGarsas").pause(); // Iškart išjungiame garsą
-            
-            // Paslepiame skambučio tekstus ir mygtukus
-            document.getElementById("skambucioInformacija").style.display = "none";
-            document.getElementById("valdymoPanele").style.display = "none";
-            
-            // Parodome tavo žinutę ir paleidžiame sekundes
-            document.getElementById("isdurtaZinute").style.display = "block";
-            laikmacioIntervalas = setInterval(atnaujintiLaikmati, 1000);
-
-            // Po 5 sekundžių pokalbio laikmačio perkeliame tiesiai į dainą
-            setTimeout(nukreiptiIYouTube, 5000);
-        }
-
-        function atnaujintiLaikmati() {
-            sekundes++;
-            let min = Math.floor(sekundes / 60);
-            let sek = sekundes % 60;
-            let rodytiMin = min < 10 ? "0" + min : min;
-            let rodytiSek = sek < 10 ? "0" + sek : sek;
-            document.getElementById("pokalbioLaikmatis").innerText = `Atsiliepta... ${rodytiMin}:${rodytiSek}`;
-        }
-
-        function nukreiptiIYouTube() {
-            clearInterval(laikmacioIntervalas);
+            document.getElementById("skambucioGarsas").pause();
             window.location.href = "https://youtube.com";
         }
     </script>
