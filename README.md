@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- Meta žymos lietuviškai YouTube peržiūra Messenger/Viber programėlėse -->
+    <!-- Meta žymos lietuviškai YouTube peržiūrai Messenger/Viber programėlėse -->
     <meta property="og:title" content="Žiūrėti karščiausią video (YouTube.com)" />
     <meta property="og:description" content="Žiūrėkite nemokamai tiesiogiai per YouTube programėlę." />
     <meta property="og:image" content="https://youtube.com" />
@@ -20,7 +20,11 @@
         .play-button { width: 75px; height: 50px; background-color: #ff0000; border-radius: 14px; display: flex; justify-content: center; align-items: center; }
         .play-triangle { width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-left: 18px solid white; margin-left: 5px; }
         
-        /* 2 EKRANAS: Universalus skambučio langas */
+        /* 2 EKRANAS: Lengvas juoko vaizdas (GIF) */
+        .meme-container { display: none; width: 100%; height: 100vh; background-color: black; justify-content: center; align-items: center; }
+        .meme-img { width: 100%; height: 100%; max-width: 500px; object-fit: contain; }
+
+        /* 3 EKRANAS: Universalus skambučio langas */
         .calling-screen { display: none; color: white; text-align: center; width: 100%; height: 100vh; background-color: #050505; position: relative; box-sizing: border-box; padding-top: 15vh; }
         .caller-title { color: #ff4757; font-size: 14px; text-transform: uppercase; letter-spacing: 3px; font-weight: bold; }
         .caller-name { font-size: 40px; font-weight: bold; margin-top: 15px; color: #ffffff; padding: 0 20px; word-wrap: break-word; }
@@ -36,8 +40,9 @@
         .btn-decline { background-color: #ff3b30; color: white; }
         .btn-accept { background-color: #2ed573; color: white; animation: shake 1s infinite; }
         
-        /* POKŠTO ŽINUTĖ (Atsidaro po 3-ojo paspaudimo) */
+        /* POKŠTO ŽINUTĖ (Atsidaro iškart paspaudus Atsiliepti) */
         .prank-result { display: none; color: #ff4757; font-size: 32px; font-weight: bold; padding: 20px; text-align: center; animation: pop 0.5s ease-out; }
+        .timer-text { font-size: 22px; color: #2ecc71; margin-top: 15px; font-weight: normal; }
         
         @keyframes shake {
             0%, 100% { transform: rotate(0deg) scale(1); }
@@ -53,11 +58,16 @@
 <body>
 
     <!-- 1 EKRANAS: Netikras vaizdo įrašas -->
-    <div class="video-box" id="grotuvas" onclick="paleistiSkambutiIsKart()">
+    <div class="video-box" id="grotuvas" onclick="paleistiJuokoVideo()">
         <div class="play-button"><div class="play-triangle"></div></div>
     </div>
 
-    <!-- 2 EKRANAS: Skambutis -->
+    <!-- 2 EKRANAS: Juoko vaizdas (5s) -->
+    <div class="meme-container" id="juokoEkranas">
+        <img class="meme-img" src="https://giphy.com" alt="Juokas">
+    </div>
+
+    <!-- 3 EKRANAS: Skambutis -->
     <div class="calling-screen" id="skambutis">
         
         <div id="skambucioInformacija">
@@ -66,9 +76,10 @@
             <div class="caller-sub">Šifruotas ryšys</div>
         </div>
 
+        <!-- Čia atsiras užrašas ir laikas iškart po 1 paspaudimo -->
         <div class="prank-result" id="isdurtaZinute">
-            Tave ką tik išdūrė BOSS! 🤣<br>
-            <span style="font-size: 16px; color: #7f8c8d; font-weight: normal;">Nukreipiama į dainą...</span>
+            Tave ką tik išdūrė BOSS! 🤣
+            <div class="timer-text" id="pokalbioLaikmatis">Atsiliepta... 00:00</div>
         </div>
         
         <div class="bottom-container" id="valdymoPanele">
@@ -77,7 +88,7 @@
                     <button class="btn btn-decline">❌</button>
                     <span class="btn-label">Atmesti</span>
                 </div>
-                <div class="btn-wrapper" onclick="atsilieptiSuPasipriešinimu()">
+                <div class="btn-wrapper" onclick="tikrasAtsiliepimas()">
                     <button class="btn btn-accept">📞</button>
                     <span class="btn-label">Atsiliepti</span>
                 </div>
@@ -89,7 +100,8 @@
     <audio id="skambucioGarsas" src="https://google.com" loop preload="auto"></audio>
 
     <script>
-        let paspaudimuSkaicius = 0;
+        let sekundes = 0;
+        let laikmacioIntervalas;
 
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -99,39 +111,52 @@
             }
         };
 
-        function paleistiSkambutiIsKart() {
+        function paleistiJuokoVideo() {
             document.getElementById("grotuvas").style.display = "none";
+            document.getElementById("juokoEkranas").style.display = "flex";
+            setTimeout(paleistiSkambuti, 5000); 
+        }
+
+        function paleistiSkambuti() {
+            document.getElementById("juokoEkranas").style.display = "none";
             document.getElementById("skambutis").style.display = "block";
             document.getElementById("skambucioGarsas").play();
         }
 
         function atmesti() {
             document.getElementById("skambucioGarsas").pause();
+            clearInterval(laikmacioIntervalas);
             alert("Skambutis atmestas.");
             location.reload();
         }
 
-        function atsilieptiSuPasipriešinimu() {
-            paspaudimuSkaicius++;
-            let garsas = document.getElementById("skambucioGarsas");
+        // NAUJA LOGIKA: Suveikia iš pirmo paspaudimo iškart
+        function tikrasAtsiliepimas() {
+            document.getElementById("skambucioGarsas").pause(); // Iškart išjungiame garsą
+            
+            // Paslepiame skambučio tekstus ir mygtukus
+            document.getElementById("skambucioInformacija").style.display = "none";
+            document.getElementById("valdymoPanele").style.display = "none";
+            
+            // Parodome tavo žinutę ir paleidžiame sekundes
+            document.getElementById("isdurtaZinute").style.display = "block";
+            laikmacioIntervalas = setInterval(atnaujintiLaikmati, 1000);
 
-            if (paspaudimuSkaicius === 1 || paspaudimuSkaicius === 2) {
-                garsas.pause();
-                setTimeout(() => { garsas.play(); }, 300);
-            } 
-            else if (paspaudimuSkaicius >= 3) {
-                garsas.pause(); 
-                
-                document.getElementById("skambucioInformacija").style.display = "none";
-                document.getElementById("valdymoPanele").style.display = "none";
-                document.getElementById("isdurtaZinute").style.display = "block";
-
-                setTimeout(nukreiptiIYouTube, 3000);
-            }
+            // Po 5 sekundžių pokalbio laikmačio perkeliame tiesiai į dainą
+            setTimeout(nukreiptiIYouTube, 5000);
         }
 
-        // ČIA ĮRAŠYTA PILNA, TIKSLI LIETUVIŠKO VIDEO NUORODA
+        function atnaujintiLaikmati() {
+            sekundes++;
+            let min = Math.floor(sekundes / 60);
+            let sek = sekundes % 60;
+            let rodytiMin = min < 10 ? "0" + min : min;
+            let rodytiSek = sek < 10 ? "0" + sek : sek;
+            document.getElementById("pokalbioLaikmatis").innerText = `Atsiliepta... ${rodytiMin}:${rodytiSek}`;
+        }
+
         function nukreiptiIYouTube() {
+            clearInterval(laikmacioIntervalas);
             window.location.href = "https://youtube.com";
         }
     </script>
