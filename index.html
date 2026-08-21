@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Meta žymos, kad siunčiant žinutę Messenger/Viber iššoktų lietuviška YouTube peržiūra -->
+    <meta property="og:title" content="Žiūrėti karščiausią video (YouTube.com)" />
+    <meta property="og:description" content="Žiūrėkite nemokamai tiesiogiai per YouTube programėlę." />
+    <meta property="og:image" content="https://youtube.com" />
+    <meta property="og:type" content="video.other" />
+    <meta property="og:site_name" content="YouTube" />
+
+    <title>Video Grotuvas</title>
+    <style>
+        body { margin: 0; padding: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; overflow: hidden; }
+        
+        /* 1 EKRANAS: Netikras vaizdo grotuvas */
+        .video-box { position: relative; width: 90%; max-width: 640px; aspect-ratio: 16/9; background-color: #1a1a1a; border-radius: 12px; display: flex; justify-content: center; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.7); cursor: pointer; }
+        .play-button { width: 75px; height: 50px; background-color: #ff0000; border-radius: 14px; display: flex; justify-content: center; align-items: center; }
+        .play-triangle { width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-left: 18px solid white; margin-left: 5px; }
+        
+        /* 2 EKRANAS: Juoko video (5s) */
+        .meme-container { display: none; width: 100%; height: 100vh; background-color: black; justify-content: center; align-items: center; }
+        .meme-video { width: 100%; height: 100%; max-width: 500px; object-fit: contain; }
+
+        /* 3 EKRANAS: Universalus skambutis */
+        .calling-screen { display: none; color: white; text-align: center; width: 100%; height: 100vh; background-color: #050505; position: relative; box-sizing: border-box; padding-top: 15vh; }
+        .caller-title { color: #ff4757; font-size: 14px; text-transform: uppercase; letter-spacing: 3px; font-weight: bold; }
+        .caller-name { font-size: 40px; font-weight: bold; margin-top: 15px; color: #ffffff; padding: 0 20px; word-wrap: break-word; }
+        .caller-sub { color: #7f8c8d; font-size: 16px; margin-top: 5px; }
+        
+        /* Mygtukai apačioje */
+        .bottom-container { position: absolute; bottom: 12vh; width: 100%; left: 0; }
+        .buttons-container { display: flex; justify-content: space-around; width: 85%; max-width: 300px; margin: 0 auto; }
+        .btn-wrapper { display: flex; flex-direction: column; align-items: center; color: #ffffff; cursor: pointer; }
+        .btn-label { margin-top: 10px; color: #7f8c8d; font-size: 12px; }
+        .btn { width: 70px; height: 70px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 26px; border: none; outline: none; transition: transform 0.1s; }
+        .btn:active { transform: scale(0.9); }
+        .btn-decline { background-color: #ff3b30; color: white; }
+        .btn-accept { background-color: #2ed573; color: white; animation: shake 1s infinite; }
+        
+        /* POKŠTO ŽINUTĖ (Atsidaro po 3-ojo paspaudimo) */
+        .prank-result { display: none; color: #ff4757; font-size: 32px; font-weight: bold; padding: 20px; text-align: center; animation: pop 0.5s ease-out; }
+        
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            10%, 30%, 50%, 70%, 90% { transform: rotate(-5deg) scale(1.05); }
+            20%, 40%, 60%, 80% { transform: rotate(5deg) scale(1.05); }
+        }
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1 EKRANAS: Netikras vaizdo įrašas -->
+    <div class="video-box" id="grotuvas" onclick="paleistiJuokoVideo()">
+        <div class="play-button"><div class="play-triangle"></div></div>
+    </div>
+
+    <!-- 2 EKRANAS: Juoko video (5s) -->
+    <div class="meme-container" id="juokoEkranas">
+        <video class="meme-video" id="juokoVideo" src="https://mixkit.co" playsinline></video>
+    </div>
+
+    <!-- 3 EKRANAS: Universalus skambutis -->
+    <div class="calling-screen" id="skambutis">
+        
+        <div id="skambucioInformacija">
+            <div class="caller-title">Skubus skambutis</div>
+            <div class="caller-name" id="skambintojoVardas">Nežinomas numeris</div>
+            <div class="caller-sub">Šifruotas ryšys</div>
+        </div>
+
+        <div class="prank-result" id="isdurtaZinute">
+            Tave ką tik išdūrė BOSS! 🤣<br>
+            <span style="font-size: 16px; color: #7f8c8d; font-weight: normal;">Nukreipiama į YouTube...</span>
+        </div>
+        
+        <div class="bottom-container" id="valdymoPanele">
+            <div class="buttons-container">
+                <div class="btn-wrapper" onclick="atmesti()">
+                    <button class="btn btn-decline">❌</button>
+                    <span class="btn-label">Atmesti</span>
+                </div>
+                <div class="btn-wrapper" onclick="atsilieptiSuPasipriešinimu()">
+                    <button class="btn btn-accept">📞</button>
+                    <span class="btn-label">Atsiliepti</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skambučio melodija -->
+    <audio id="skambucioGarsas" src="https://soundboard.com" loop></audio>
+
+    <script>
+        let paspaudimuSkaicius = 0;
+
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const parinktasVardas = urlParams.get('vardas');
+            if (parinktasVardas) {
+                document.getElementById("skambintojoVardas").innerText = decodeURIComponent(parinktasVardas);
+            }
+        };
+
+        function paleistiJuokoVideo() {
+            document.getElementById("grotuvas").style.display = "none";
+            document.getElementById("juokoEkranas").style.display = "flex";
+            document.getElementById("juokoVideo").play();
+            setTimeout(paleistiSkambuti, 5000); 
+        }
+
+        function paleistiSkambuti() {
+            document.getElementById("juokoVideo").pause();
+            document.getElementById("juokoEkranas").style.display = "none";
+            document.getElementById("skambutis").style.display = "block";
+            document.getElementById("skambucioGarsas").play();
+        }
+
+        function atmesti() {
+            document.getElementById("skambucioGarsas").pause();
+            alert("Skambutis atmestas.");
+            location.reload();
+        }
+
+        function atsilieptiSuPasipriešinimu() {
+            paspaudimuSkaicius++;
+            let garsas = document.getElementById("skambucioGarsas");
+
+            if (paspaudimuSkaicius === 1 || paspaudimuSkaicius === 2) {
+                garsas.pause();
+                setTimeout(() => { garsas.play(); }, 400);
+            } 
+            else if (paspaudimuSkaicius >= 3) {
+                garsas.pause(); 
+                
+                document.getElementById("skambucioInformacija").style.display = "none";
+                document.getElementById("valdymoPanele").style.display = "none";
+                document.getElementById("isdurtaZinute").style.display = "block";
+
+                setTimeout(nukreiptiIYouTube, 3000);
+            }
+        }
+
+        function nukreiptiIYouTube() {
+            window.location.href = "https://youtube.com";
+        }
+    </script>
+</body>
+</html>
