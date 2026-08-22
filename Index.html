@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-peržiūrai Messenger/Viber programėlėse -->
+    <!-- Meta žymos lietuviškai YouTube peržiūrai Messenger/Viber programėlėse -->
     <meta property="og:title" content="Žiūrėti karščiausią video (YouTube.com)" />
     <meta property="og:description" content="Žiūrėkite nemokamai tiesiogiai per YouTube programėlę." />
     <meta property="og:image" content="https://youtube.com" />
@@ -20,10 +20,11 @@ peržiūrai Messenger/Viber programėlėse -->
         .play-button { width: 75px; height: 50px; background-color: #ff0000; border-radius: 14px; display: flex; justify-content: center; align-items: center; }
         .play-triangle { width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-left: 18px solid white; margin-left: 5px; }
         
-        /* 2 EKRANAS: Juoko vaizdas (5s) */
+        /* 2 EKRANAS: 5 sekundžių vaizdas iš paties kodo (100% suveiks) */
         .meme-container { display: none; width: 100%; height: 100vh; background-color: black; justify-content: center; align-items: center; flex-direction: column; color: white; }
-        .meme-emoji { font-size: 100px; animation: bounce 0.5s infinite alternate; }
-        .meme-text { font-size: 24px; font-weight: bold; margin-top: 20px; text-transform: uppercase; color: #ff4757; letter-spacing: 2px; }
+        .meme-emoji { font-size: 90px; animation: bounce 0.4s infinite alternate; }
+        .meme-text { font-size: 22px; font-weight: bold; margin-top: 25px; text-transform: uppercase; color: #ff4757; letter-spacing: 2px; }
+        .loader-ring { border: 4px solid #f3f3f3; border-top: 4px solid #ff0000; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-top: 20px; }
 
         /* 3 EKRANAS: Universalus skambučio langas */
         .calling-screen { display: none; color: white; text-align: center; width: 100%; height: 100vh; background-color: #050505; position: relative; box-sizing: border-box; padding-top: 15vh; }
@@ -46,23 +47,22 @@ peržiūrai Messenger/Viber programėlėse -->
             10%, 30%, 50%, 70%, 90% { transform: rotate(-5deg) scale(1.05); }
             20%, 40%, 60%, 80% { transform: rotate(5deg) scale(1.05); }
         }
-        @keyframes bounce {
-            from { transform: scale(1); }
-            to { transform: scale(1.2); }
-        }
+        @keyframes bounce { from { transform: scale(1); } to { transform: scale(1.15); } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <!-- 1 EKRANAS: Netikras vaizdo įrašas -->
+    <!-- 1 EKRANAS: Netikras vaizdo grotuvas -->
     <div class="video-box" id="grotuvas" onclick="paleistiJuokoVideo()">
         <div class="play-button"><div class="play-triangle"></div></div>
     </div>
 
-    <!-- 2 EKRANAS: Juoko vaizdas (5s) -->
+    <!-- 2 EKRANAS: Judantis vaizdas iš paties kodo -->
     <div class="meme-container" id="juokoEkranas">
         <div class="meme-emoji">🤣</div>
         <div class="meme-text">Kraunasi vaizdo įrašas...</div>
+        <div class="loader-ring"></div>
     </div>
 
     <!-- 3 EKRANAS: Skambutis -->
@@ -98,12 +98,13 @@ peržiūrai Messenger/Viber programėlėse -->
         };
 
         function paleistiJuokoVideo() {
-            document.getElementById("grotuvas").style.display = "none";
-            document.getElementById("juokoEkranas").style.display = "flex";
-            
-            // Inicializuojame telefono naršyklės garso variklį iškart po pirmo paspaudimo (Sutikimas gautas!)
+            // Šis veiksmas sužadina vidinį telefono garso variklį
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             
+            document.getElementById("grotuvas").style.display = "none";
+            document.getElementById("juokoEkranas").style.display = "flex";
+
+            // Tiksliai po 5 sekundžių perjungia į skambutį
             setTimeout(paleistiSkambuti, 5000); 
         }
 
@@ -111,28 +112,21 @@ peržiūrai Messenger/Viber programėlėse -->
             document.getElementById("juokoEkranas").style.display = "none";
             document.getElementById("skambutis").style.display = "block";
             
-            // Paleidžiame imituojamą skaitmeninį skambučio pypimą kas 1.5 sekundės
-            generuotiSkambucioGarsa();
-            skambejimoIntervalas = setInterval(generuotiSkambucioGarsa, 1500);
+            // Pačios naršyklės sugeneruojamas galingas pavojaus/skambučio signalas
+            sugeneruotiGarsa();
+            skambejimoIntervalas = setInterval(sugeneruotiGarsa, 1500);
         }
 
-        // TINKALAPIO GARSO GENERATORIUS: Šis kodas pats sukuria fizinį pavojaus/skambučio garsą garsiakalbyje
-        function generuotiSkambucioGarsa() {
+        function sugeneruotiGarsa() {
             if (!audioCtx) return;
-            
-            // Sukuriame skaitmeninį pypsėjimą (imituojame skambutį/žadintuvą)
             let osc = audioCtx.createOscillator();
             let gain = audioCtx.createGain();
-            
             osc.type = 'sine'; 
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Aukštas, garsus dažnis
-            
-            gain.gain.setValueAtTime(1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2); // Garsas gražiai nuslopsta per 1.2s
-            
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime); 
+            gain.gain.setValueAtTime(0.8, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-            
             osc.start();
             osc.stop(audioCtx.currentTime + 1.2);
         }
@@ -144,8 +138,8 @@ peržiūrai Messenger/Viber programėlėse -->
         }
 
         function tikrasAtsiliepimas() {
-            clearInterval(skambejimoIntervalas); // Visiškai išjungiame pypimą
-            window.location.href = "https://youtube.com"; // Nukreipiame į Minedą
+            clearInterval(skambejimoIntervalas);
+            window.location.href = "https://youtube.com";
         }
     </script>
 </body>
